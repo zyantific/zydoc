@@ -17,6 +17,9 @@ struct Args {
     /// the branch to read the Doxygen config from
     #[argh(option)]
     config_ref: Option<String>,
+    /// path of the Doxyfile to use
+    #[argh(option)]
+    doxyfile: Option<path::PathBuf>,
 }
 
 /// Run the actual application.
@@ -41,8 +44,8 @@ pub fn run() -> Result<()> {
         .context("failed to switch to master")?;
 
     // Read config from master.
-    let config = fs::read_to_string(args.repo.join("Doxyfile"));
-    let config = config.context("failed to read Doxyfile")?;
+    let doxyfile = args.doxyfile.unwrap_or_else(|| args.repo.join("Doxyfile"));
+    let config = load_doxyfile(&doxyfile).context("failed to read Doxyfile")?;
 
     // Parse regular expressions.
     let regexps = args
@@ -74,7 +77,7 @@ pub fn run() -> Result<()> {
         // Doxygen doesn't support overriding configurations via command-line switch,
         // so in order to customize the output directory, we make it read the config
         // from stdin, generating a custom configuration for each invocation.
-        let mut proc = process::Command::new("doxygen")
+        let proc = process::Command::new("doxygen")
             .current_dir(&args.repo)
             .arg("-")
             .stdin(process::Stdio::piped())
@@ -91,9 +94,14 @@ pub fn run() -> Result<()> {
             .write_all(local_config.as_bytes())
             .context("failed to write doxygen config to stdin")?;
 
-        let status = proc.wait().context("failed to wait for doxygen")?;
-        if !status.success() {
-            bail!("doxygen failed with status {}", status);
+        let output = proc
+            .wait_with_output()
+            .context("failed to wait for doxygen")?;
+
+        if !output.status.success() {
+            let stderr = str::from_utf8(&output.stderr).unwrap_or("<non utf-8>");
+            eprintln!("{}", stderr);
+            bail!("doxygen failed with status {}", output.status);
         }
 
         // Categorize and add to index.
@@ -139,6 +147,33 @@ struct IndexContext {
     tags: Vec<IndexRef>,
     branches: Vec<IndexRef>,
     misc_refs: Vec<IndexRef>,
+}
+
+/// Loads a Doxyfile from disk and resolves all include directives.
+fn load_doxyfile(path: &path::Path) -> Result<String> {
+    let path = path.canonicalize().context("can't resolve absolute path")?;
+    let file = fs::read_to_string(&path).context("failed to read file")?;
+
+    let mut combined = String::with_capacity(file.len() * 2);
+    for line in file.lines() {
+        if !line.to_lowercase().starts_with("@include") {
+            combined.push_str(line);
+            combined.push('\n');
+            continue;
+        }
+
+        let (_, rhs) = line
+            .split_once('=')
+            .ok_or_else(|| anyhow!("Doxyfile is missing `=`"))?;
+        let include_path = path
+            .parent()
+            .ok_or_else(|| anyhow!("Doxyfile path somehow doesn't have a parent"))?
+            .join(rhs.trim());
+        combined.push_str(&load_doxyfile(&include_path)?);
+        combined.push('\n');
+    }
+
+    Ok(combined)
 }
 
 fn render_index(index: IndexContext) -> Result<String> {
