@@ -108,7 +108,11 @@ pub fn run() -> Result<()> {
         ref_vec.push(IndexRef {
             git_ref: git_ref.clone(),
             short_ref: short_ref.to_owned(),
-            dir: dir.as_path().to_string_lossy().into_owned(),
+            dir: dir
+                .strip_prefix(&output_dir)
+                .context("failed to strip prefix from path")?
+                .to_string_lossy()
+                .into_owned(),
         });
     }
 
