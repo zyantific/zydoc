@@ -1,4 +1,4 @@
 zydoc
 =====
 
-Internal tool to generating Zydis' documentation in CI.
+Internal tool to generate Zydis' documentation in CI.
