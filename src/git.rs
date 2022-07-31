@@ -9,7 +9,6 @@
 use crate::prelude::*;
 
 use std::path::PathBuf;
-use std::process::Command;
 
 #[derive(Debug)]
 pub struct Repo {
@@ -63,9 +62,4 @@ impl Repo {
 
 fn conv_output(raw: &[u8]) -> Result<&str> {
     str::from_utf8(raw).context("git created non-UTF8 output")
-}
-
-#[derive(Debug)]
-enum Ref {
-    Tag(String),
 }
