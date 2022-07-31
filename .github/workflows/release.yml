@@ -18,3 +18,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           RUSTTARGET: x86_64-unknown-linux-musl
+          ARCHIVE_TYPES: tar.gz
