@@ -19,4 +19,3 @@ jobs:
         with:
           RUSTTARGET: x86_64-unknown-linux-musl
           ARCHIVE_TYPES: tar.gz
-          TOOLCHAIN_VERSION: 1.62.0-x86_64-unknown-linux-gnu

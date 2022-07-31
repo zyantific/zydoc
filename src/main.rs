@@ -2,11 +2,9 @@ pub(crate) mod git;
 pub(crate) mod prelude;
 pub(crate) mod run;
 
-fn main() -> std::process::ExitCode {
+fn main() {
     if let Err(e) = run::run() {
         eprintln!("Error: {:?}", e);
-        return 1.into();
+        std::process::exit(1);
     }
-
-    0.into()
 }
