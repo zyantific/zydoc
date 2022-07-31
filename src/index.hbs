@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Zydis doc version index</title>
+</head>
+
+<body>
+    <h1>Zydis documentation</h1>
+
+    {{#if branches}}
+    <h2>Branches</h2>
+    {{#each branches}}
+    <div>
+        <a href="{{dir}}/html/index.html">{{short_ref}}</a>
+    </div>
+    {{/each}}
+    {{/if}}
+
+    {{#if tags}}
+    <h2>Tags</h2>
+    {{#each tags}}
+    <div>
+        <a href="{{dir}}/html/index.html">{{short_ref}}</a>
+    </div>
+    {{/each}}
+    {{/if}}
+
+    {{#if misc_refs}}
+    <h2>Misc Refs</h2>
+    {{#each misc_refs}}
+    <div>
+        <a href="{{dir}}/html/index.html">{{short_ref}}</a>
+    </div>
+    {{/each}}
+    {{/if}}
+</body>
+
+</html>

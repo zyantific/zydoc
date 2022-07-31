@@ -1,8 +1,6 @@
-use std::io::Write;
-
 use crate::prelude::*;
 
-use regex::Regex;
+use std::io::Write as _;
 
 /// Documentation generator for Zydis.
 #[derive(Debug, argh::FromArgs)]
@@ -46,10 +44,11 @@ pub fn run() -> Result<()> {
     let regexps = args
         .refs
         .iter()
-        .map(|x| Regex::new(&x).map_err(Into::into))
+        .map(|x| regex::Regex::new(&x).map_err(Into::into))
         .collect::<Result<Vec<_>>>()
         .context("failed to parse regular expression")?;
 
+    let mut index = IndexContext::default();
     for git_ref in repo.refs()? {
         if !regexps.iter().any(|re| re.is_match(&git_ref)) {
             continue;
@@ -58,7 +57,8 @@ pub fn run() -> Result<()> {
         println!("Generating documentation for reference `{}`", &git_ref);
 
         // Create the output directory for this ref.
-        let slug = slug_ref_name(&git_ref);
+        let short_ref = short_ref_name(&git_ref);
+        let slug = short_ref.replace('/', "-");
         let dir = output_dir.join(&slug);
         fs::create_dir(&dir).context("failed to create dir for ref")?;
 
@@ -91,17 +91,57 @@ pub fn run() -> Result<()> {
         if !status.success() {
             bail!("doxygen failed with status {}", status);
         }
+
+        // Categorize and add to index.
+        let ref_vec = if git_ref.starts_with("refs/tags") {
+            &mut index.tags
+        } else if git_ref.starts_with("refs/heads") {
+            &mut index.branches
+        } else {
+            &mut index.misc_refs
+        };
+
+        ref_vec.push(IndexRef {
+            git_ref: git_ref.clone(),
+            short_ref: short_ref.to_owned(),
+            dir: dir.as_path().to_string_lossy().into_owned(),
+        });
     }
 
     repo.checkout("master")?;
 
+    // Generate `index.html`.
+    println!("Writing index.html");
+    let index = render_index(index).context("failed to generate index.html")?;
+    fs::write(output_dir.join("index.html"), index).context("failed to write index.html")?;
+
     Ok(())
 }
 
-fn slug_ref_name(x: &str) -> String {
+#[derive(Debug, serde::Serialize)]
+struct IndexRef {
+    short_ref: String,
+    git_ref: String,
+    dir: String,
+}
+
+#[derive(Debug, Default, serde::Serialize)]
+struct IndexContext {
+    tags: Vec<IndexRef>,
+    branches: Vec<IndexRef>,
+    misc_refs: Vec<IndexRef>,
+}
+
+fn render_index(index: IndexContext) -> Result<String> {
+    let mut hb = handlebars::Handlebars::new();
+    hb.register_template_string("index", &include_str!("index.hbs"))
+        .context("failed to register index template")?;
+    hb.render("index", &index).map_err(Into::into)
+}
+
+fn short_ref_name(x: &str) -> &str {
     let x = x.strip_prefix("refs/").unwrap_or(x);
     let x = x.strip_prefix("heads/").unwrap_or(x);
     let x = x.strip_prefix("tags/").unwrap_or(x);
-    let x = x.replace('/', "-");
     x
 }
