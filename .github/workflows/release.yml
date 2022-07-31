@@ -1,0 +1,20 @@
+name: Build Release
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  cmake-build-and-tests:
+    name: Build static binaries
+    runs-on: "ubuntu-22.04"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build binaries
+        uses: rust-build/rust-build.action@v1.3.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          RUSTTARGET: x86_64-unknown-linux-musl
