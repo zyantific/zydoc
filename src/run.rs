@@ -14,6 +14,9 @@ struct Args {
     /// output directory
     #[argh(option)]
     output_dir: path::PathBuf,
+    /// the branch to read the Doxygen config from
+    #[argh(option)]
+    config_ref: Option<String>,
 }
 
 /// Run the actual application.
@@ -31,9 +34,10 @@ pub fn run() -> Result<()> {
         .canonicalize()
         .context("failed to normalize path")?;
 
-    // Checkout master..
+    // Checkout `config_ref` branch.
+    let config_ref = args.config_ref.as_deref().unwrap_or("master");
     let repo = crate::git::Repo::new(&args.repo);
-    repo.checkout("master")
+    repo.checkout(config_ref)
         .context("failed to switch to master")?;
 
     // Read config from master.
@@ -70,7 +74,7 @@ pub fn run() -> Result<()> {
         // Doxygen doesn't support overriding configurations via command-line switch,
         // so in order to customize the output directory, we make it read the config
         // from stdin, generating a custom configuration for each invocation.
-        let mut proc = Command::new("doxygen")
+        let mut proc = process::Command::new("doxygen")
             .current_dir(&args.repo)
             .arg("-")
             .stdin(process::Stdio::piped())
@@ -108,12 +112,13 @@ pub fn run() -> Result<()> {
         });
     }
 
-    repo.checkout("master")?;
-
     // Generate `index.html`.
     println!("Writing index.html");
     let index = render_index(index).context("failed to generate index.html")?;
     fs::write(output_dir.join("index.html"), index).context("failed to write index.html")?;
+
+    // Return to primary branch.
+    repo.checkout("master")?;
 
     Ok(())
 }

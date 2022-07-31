@@ -20,8 +20,8 @@ impl Repo {
         Repo { path: path.into() }
     }
 
-    fn git(&self) -> Command {
-        let mut cmd = Command::new("git");
+    fn git(&self) -> process::Command {
+        let mut cmd = process::Command::new("git");
         cmd.current_dir(&self.path);
         cmd
     }
@@ -55,8 +55,14 @@ impl Repo {
         self.git()
             .args(&["checkout", git_ref])
             .output()
-            .map(drop)
-            .context("failed to checkout reference")
+            .context("failed to run git")
+            .and_then(|x| {
+                if x.status.success() {
+                    Ok(())
+                } else {
+                    Err(anyhow!("failed to checkout reference"))
+                }
+            })
     }
 }
 
