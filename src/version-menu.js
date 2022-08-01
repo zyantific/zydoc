@@ -51,7 +51,11 @@ const data = fetch(pathToJSON)
         vmVersions.appendChild(vmOther);
       });
     vmCurrent.appendChild(
-      generateElement("span", "vm-current-toggle", `Current: ${currentVersion}`)
+      generateElement(
+        "span",
+        "vm-current-toggle",
+        `Documentation version: ${currentVersion}`
+      )
     );
     vmVersions.appendChild(vmCurrent);
     vmWrapper.appendChild(vmVersions);
