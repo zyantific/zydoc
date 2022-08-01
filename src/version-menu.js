@@ -1,6 +1,5 @@
-const pathToJSON = "versions.json";
+const pathToJSON = "/versions.json";
 const currentVersion = window.location.pathname.split("/")[1];
-// const currentVersion = "1.0.0";
 
 function generateElement(element, className, innerHTML) {
   let elementToGenerate = document.createElement(element);
