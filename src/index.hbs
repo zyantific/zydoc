@@ -24,23 +24,24 @@
       100%; margin: 0; } body { background-color: #fff; color: #2f3e4e;
       min-height: 100vh; text-rendering: optimizeSpeed; line-height: 1.5;
       font-family: "Inter", sans-serif; font-size: 1rem; } h2 { font-size: 24px;
-      font-weight: 700; margin-top: 0; margin-bottom: 0; } a { color: #2f3e4e;
-      display: block; text-decoration: none; margin-left: 35px; padding-top:
-      10px; } a:hover { color: #63c5ff; } .logo-container { display: flex;
-      flex-direction: column; align-items: center; justify-content: center; }
-      .wrapper { display: flex; flex-direction: column; align-items: center;
-      justify-content: center; height: 100%; } .container { background-color:
-      #fbfbfb; border-radius: 10px; padding: 20px; width: 300px; border: #dedede
-      2px solid; } .heading-container { display: flex; flex-direction: row;
-      align-items: center; gap: 8px; } .heading-container:not(:first-child) {
-      margin-top: 20px; } @media (prefers-color-scheme: dark) { body {
-      background-color: #1a1a1a; color: #fff; } a { color: #d4dbde; } .container
-      { background-color: #252628; border-color: #38393b; } } .accordion {
-      cursor: pointer; margin-left: 35px; transition: 0.4s; } .accordion:after {
-      content: "\f107"; font-family: "FontAwesome"; font-weight: bold; float:
-      right; margin-left: 5px; } .active:after { content: "\f106"; font-family:
-      "FontAwesome"; } .panel { padding: 0 18px; max-height: 0; overflow:
-      hidden; transition: max-height 0.2s ease-out; }
+      font-weight: 700; margin-top: 0; margin-bottom: 0; } a, span { color:
+      #2f3e4e; display: block; text-decoration: none; margin-left: 35px;
+      padding-top: 10px; } a:hover, span:hover { color: #63c5ff; }
+      .logo-container { display: flex; flex-direction: column; align-items:
+      center; justify-content: center; } .wrapper { display: flex;
+      flex-direction: column; align-items: center; justify-content: center;
+      height: 100%; } .container { background-color: #fbfbfb; border-radius:
+      10px; padding: 20px; width: 300px; border: #dedede 2px solid; }
+      .heading-container { display: flex; flex-direction: row; align-items:
+      center; gap: 8px; } .heading-container:not(:first-child) { margin-top:
+      20px; } .accordion { cursor: pointer; margin-left: 35px; transition: 0.4s;
+      } .accordion:after { content: "\f107"; font-family: "FontAwesome";
+      font-weight: bold; float: right; margin-left: 5px; } .active:after {
+      content: "\f106"; font-family: "FontAwesome"; } .panel { padding: 0 18px;
+      max-height: 0; overflow: hidden; transition: max-height 0.2s ease-out; }
+      @media (prefers-color-scheme: dark) { body { background-color: #1a1a1a;
+      color: #fff; } a, span { color: #d4dbde; } .container { background-color:
+      #252628; border-color: #38393b; } }
     </style>
   </head>
 
@@ -137,7 +138,6 @@
             </div>
           {{/each}}
         {{/if}}
-
         {{#if tags}}
           <div class="heading-container">
             <svg
@@ -166,7 +166,7 @@
           </div>
 
           {{#each tags}}
-            <a class="accordion">{{major}}</a>
+            <span class="accordion">{{major}}</span>
             <div class="panel">
               {{#each subversions}}
                 <div>
@@ -176,7 +176,6 @@
             </div>
           {{/each}}
         {{/if}}
-
         {{#if misc_refs}}
           <div class="heading-container">
             <svg
