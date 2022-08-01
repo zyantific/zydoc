@@ -56,7 +56,7 @@ pub fn run() -> Result<()> {
         .context("failed to parse regular expression")?;
 
     let mut index = IndexContext::default();
-    for git_ref in repo.refs()? {
+    for git_ref in repo.refs()?.into_iter().rev() {
         if !regexps.iter().any(|re| re.is_match(&git_ref)) {
             continue;
         }
@@ -106,7 +106,24 @@ pub fn run() -> Result<()> {
 
         // Categorize and add to index.
         let ref_vec = if git_ref.starts_with("refs/tags") {
-            &mut index.tags
+            // Split off the major part. For example `v4.1.2` -> `v4`.
+            let major = match short_ref.split_once('.') {
+                Some((major, _)) => major,
+                None => short_ref,
+            };
+
+            let bucket = match index.tags.iter_mut().find(|x| x.major == major) {
+                Some(bucket) => bucket,
+                None => {
+                    index.tags.push(MajorVersion {
+                        major: major.to_owned(),
+                        subversions: Vec::new(),
+                    });
+                    index.tags.last_mut().unwrap()
+                }
+            };
+
+            &mut bucket.subversions
         } else if git_ref.starts_with("refs/heads") {
             &mut index.branches
         } else {
@@ -143,8 +160,14 @@ struct IndexRef {
 }
 
 #[derive(Debug, Default, serde::Serialize)]
+struct MajorVersion {
+    major: String,
+    subversions: Vec<IndexRef>,
+}
+
+#[derive(Debug, Default, serde::Serialize)]
 struct IndexContext {
-    tags: Vec<IndexRef>,
+    tags: Vec<MajorVersion>,
     branches: Vec<IndexRef>,
     misc_refs: Vec<IndexRef>,
 }
