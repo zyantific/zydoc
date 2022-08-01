@@ -199,7 +199,7 @@ struct IndexContext {
 fn inject_version_js(output_dir: &path::Path) -> Result<()> {
     fn process_html_file(path: &path::Path) -> Result<()> {
         let needle = b"</title>";
-        let payload = br#"<script type="text/javascript" src="/version-menu.js"></script>"#;
+        let payload = br#"<script type="text/javascript" src="/version-menu.js" defer></script>"#;
 
         let mut data = fs::read(path)?;
         match data.windows(needle.len()).position(|x| x == needle) {
