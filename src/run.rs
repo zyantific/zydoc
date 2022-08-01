@@ -92,7 +92,17 @@ pub fn run() -> Result<()> {
             .spawn()
             .context("failed to run doxygen")?;
 
-        let local_config = format!("{}\nOUTPUT_DIRECTORY = {}", config, &dir.to_string_lossy());
+        #[rustfmt::skip]
+        let local_config = format!(
+            concat!(
+                "{}\n",
+                "OUTPUT_DIRECTORY = {}\n",
+                "PROJECT_NUMBER = {}\n",
+            ), 
+            config, 
+            &dir.to_string_lossy(),
+            &short_ref,
+        );
 
         proc.stdin
             .as_ref()
@@ -182,7 +192,7 @@ struct IndexRef {
     dir: String,
 }
 
-#[derive(Debug, Default, serde::Serialize)]
+#[derive(Debug, serde::Serialize)]
 struct MajorVersion {
     major: String,
     subversions: Vec<IndexRef>,
