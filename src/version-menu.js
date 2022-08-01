@@ -77,6 +77,7 @@ let css = `
   .vm-wrapper ul {
     padding: 0;
     list-style: none;
+    overflow: visible;
   }
   .vm-wrapper li {
     list-style: none;
